@@ -42,34 +42,14 @@ steps:
 
     # install infra-deps (needed by formatting check of terraform files)
     vtools install infra-deps --conf=vtools/vtools/artifacts/ci/vtools-gcc-release.yml
-    vtools install redpanda-build-deps --conf=vtools/vtools/artifacts/ci/vtools-gcc-release.yml
 
 - id: 'build builder image'
   name: 'gcr.io/redpandaci/fedora:31-python37-docker1903'
   args: ['./build/venv/v/bin/vtools', 'dbuild', 'toolchain', '--conf=vtools/vtools/artifacts/ci/vtools-$_COMPILER-$_BUILD_TYPE.yml']
 
-- id: 'check source code formatting'
-  name: 'gcr.io/redpandaci/builder'
-  entrypoint: 'bash'
-  args:
-  - -c
-  - |
-    if [[ "$_COMPILER" == "clang" ]]; then
-      ./build/venv/v/bin/vtools fmt all --check --conf=vtools/vtools/artifacts/ci/vtools-$_COMPILER-$_BUILD_TYPE.yml
-    fi
-
-- id: 'test rpk'
-  name: 'gcr.io/redpandaci/builder'
-  args: ['./build/venv/v/bin/vtools', 'test', 'go', '--conf=vtools/vtools/artifacts/ci/vtools-gcc-release.yml']
-
 - id: 'build redpanda'
   name: 'gcr.io/redpandaci/builder'
   args: ['./build/venv/v/bin/vtools', 'build', 'cpp', '--conf=vtools/vtools/artifacts/ci/vtools-$_COMPILER-$_BUILD_TYPE.yml', '--skip-external']
-
-- id: 'test redpanda'
-  name: 'gcr.io/redpandaci/builder'
-  args: ['./build/venv/v/bin/vtools', 'test', 'cpp', '--conf=vtools/vtools/artifacts/ci/vtools-$_COMPILER-$_BUILD_TYPE.yml']
-
 
 - id: 'create and publish distro packages'
   name: 'gcr.io/redpandaci/builder'
@@ -77,9 +57,10 @@ steps:
   args:
   - -c
   - |
+    git diff /workspace
     ./build/venv/v/bin/vtools build go --targets=rpk --conf=vtools/vtools/artifacts/ci/vtools-$_COMPILER-$_BUILD_TYPE.yml
     ./build/venv/v/bin/vtools build pkg --conf=vtools/vtools/artifacts/ci/vtools-$_COMPILER-$_BUILD_TYPE.yml --format=rpm --format=deb --format=tar
-    ./build/venv/v/bin/vtools publish --conf=vtools/vtools/artifacts/ci/vtools-$_COMPILER-$_BUILD_TYPE.yml
+    git diff /workspace
   env:
   - SHORT_SHA=$SHORT_SHA
   - TAG_NAME=$TAG_NAME
