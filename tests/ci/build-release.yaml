@@ -66,19 +66,16 @@ steps:
   name: 'gcr.io/redpandaci/builder'
   args: ['./build/venv/v/bin/vtools', 'build', 'cpp', '--conf=vtools/vtools/artifacts/ci/vtools-$_COMPILER-$_BUILD_TYPE.yml', '--skip-external']
 
-- id: 'test redpanda'
-  name: 'gcr.io/redpandaci/builder'
-  args: ['./build/venv/v/bin/vtools', 'test', 'cpp', '--conf=vtools/vtools/artifacts/ci/vtools-$_COMPILER-$_BUILD_TYPE.yml']
-
-
 - id: 'create and publish distro packages'
   name: 'gcr.io/redpandaci/builder'
   entrypoint: bash
   args:
   - -c
   - |
+    git diff /workspace
     ./build/venv/v/bin/vtools build go --targets=rpk --conf=vtools/vtools/artifacts/ci/vtools-$_COMPILER-$_BUILD_TYPE.yml
     ./build/venv/v/bin/vtools build pkg --conf=vtools/vtools/artifacts/ci/vtools-$_COMPILER-$_BUILD_TYPE.yml --format=rpm --format=deb --format=tar
+    git diff /workspace
     ./build/venv/v/bin/vtools publish --conf=vtools/vtools/artifacts/ci/vtools-$_COMPILER-$_BUILD_TYPE.yml
   env:
   - SHORT_SHA=$SHORT_SHA
