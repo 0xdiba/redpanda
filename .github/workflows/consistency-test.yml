@@ -44,6 +44,9 @@ jobs:
             node_build_dir: ./vbuild
             default_type: release
           EOF
+
+
+
           vtools install infra-deps > vtools_out.log 2>&1
 
       - name: Run chaos tests
