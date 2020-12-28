@@ -24,6 +24,7 @@ jobs:
 
       - name: fetch release from gcb
         run: |
+          echo ${{ github.event.client_payload }}
           gsutil cp ${{ github.event.client_payload.slash_command.deb_artifact }} redpanda.deb
 
       - name: Setup vtools
@@ -43,7 +44,6 @@ jobs:
             node_build_dir: ./vbuild
             default_type: release
           EOF
-
           vtools install infra-deps > vtools_out.log 2>&1
 
       - name: Run chaos tests
